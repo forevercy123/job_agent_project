@@ -39,9 +39,7 @@ def show_auth_page():
     with left_col:
         st.subheader("🔑 用户登录")
         login_username = st.text_input("用户名", key="login_username")
-        login_password = st.text_input(
-            "密码", type="password", key="login_password"
-        )
+        login_password = st.text_input("密码", type="password", key="login_password")
 
         if st.button("🚀 登录", type="primary", key="btn_login"):
             ok, msg, user_data = login_user(login_username, login_password)
@@ -65,9 +63,7 @@ def show_auth_page():
         reg_password = st.text_input(
             "密码（6 字符以上）", type="password", key="reg_password"
         )
-        reg_password2 = st.text_input(
-            "确认密码", type="password", key="reg_password2"
-        )
+        reg_password2 = st.text_input("确认密码", type="password", key="reg_password2")
 
         if st.button("✅ 注册新账号", key="btn_register"):
             if reg_password != reg_password2:
@@ -125,15 +121,11 @@ with st.sidebar:
     major = st.text_input("专业", value="计算机科学与技术")
     target_job = st.text_input("意向实习岗位", value="AI Agent开发实习")
     city = st.text_input("意向城市", value="武汉")
-    skills = st.text_area(
-        "掌握技能", value="Python, LangChain, 大模型应用开发"
-    )
+    skills = st.text_area("掌握技能", value="Python, LangChain, 大模型应用开发")
 
     # 保存按钮（追加模式，保留历史）
     if st.button("💾 保存个人信息至长期记忆", key="btn_save"):
-        info_str = (
-            f"专业:{major},意向岗位:{target_job},城市:{city},技能:{skills}"
-        )
+        info_str = f"专业:{major},意向岗位:{target_job},城市:{city},技能:{skills}"
         ok = save_user_info(info_str)
         if ok:
             count = get_all_memory_count()
@@ -158,9 +150,7 @@ with st.sidebar:
 
 
 # ==================== Tab 切换 ====================
-tab1, tab2, tab3 = st.tabs(
-    ["🔍 岗位智能匹配", "📄 简历诊断优化", "🎯 面试模拟"]
-)
+tab1, tab2, tab3 = st.tabs(["🔍 岗位智能匹配", "📄 简历诊断优化", "🎯 面试模拟"])
 
 
 # ==================== Tab1 岗位检索 ====================
@@ -183,17 +173,13 @@ with tab1:
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        if st.button(
-            "🚀 启动岗位检索Agent", key="btn_search", type="primary"
-        ):
+        if st.button("🚀 启动岗位检索Agent", key="btn_search", type="primary"):
             st.session_state.search_batch = 0
             st.session_state.job_history = []
             with st.spinner(
                 f"🔎 正在搜索第 {st.session_state.search_batch + 1} 批岗位... 请稍候"
             ):
-                full_info = (
-                    f"专业{major},岗位{target_job},城市{city},技能{skills}"
-                )
+                full_info = f"专业{major},岗位{target_job},城市{city},技能{skills}"
                 demand_with_batch = (
                     f"{user_demand} batch:{st.session_state.search_batch}"
                 )
@@ -208,9 +194,7 @@ with tab1:
             with st.spinner(
                 f"🔎 正在搜索第 {st.session_state.search_batch + 1} 批岗位... 请稍候"
             ):
-                full_info = (
-                    f"专业{major},岗位{target_job},城市{city},技能{skills}"
-                )
+                full_info = f"专业{major},岗位{target_job},城市{city},技能{skills}"
                 demand_with_batch = (
                     f"{user_demand} batch:{st.session_state.search_batch}"
                 )
@@ -222,12 +206,10 @@ with tab1:
     # 统一渲染：当前批次结果
     st.markdown("---")
     if st.session_state.job_result:
-        st.markdown(
-            f"**📌 当前第 {st.session_state.search_batch + 1} 批推荐**"
-        )
+        st.markdown(f"**📌 当前第 {st.session_state.search_batch + 1} 批推荐**")
         st.markdown(st.session_state.job_result)
     else:
-        st.info("👆 请点击上方"启动岗位检索Agent"开始搜索岗位")
+        st.info("👆 请点击上方“启动岗位检索Agent”开始搜索岗位")
 
 
 # ==================== Tab2 简历优化 ====================
@@ -265,9 +247,7 @@ with tab2:
             key="jd_input",
         )
 
-    run_resume = st.button(
-        "🎯 启动简历诊断优化Agent", key="btn_resume", type="primary"
-    )
+    run_resume = st.button("🎯 启动简历诊断优化Agent", key="btn_resume", type="primary")
     if run_resume:
         with st.spinner("📝 正在分析简历与 JD 匹配度... 请稍候"):
             demand = f"简历内容:{resume_content}\n岗位JD:{jd_input}"
@@ -287,7 +267,9 @@ with tab3:
 
     # 复用简历和 JD 内容
     resume_for_interview = (
-        resume_content if "resume_content" in dir() and resume_content else "暂无上传简历"
+        resume_content
+        if "resume_content" in dir() and resume_content
+        else "暂无上传简历"
     )
     jd_for_interview = jd_input if "jd_input" in dir() and jd_input else "暂无JD"
 
@@ -335,14 +317,10 @@ with tab3:
     # 2. 有当前问题时：答题区、点评、追问、复盘报告
     if st.session_state.current_interview_q:
         st.divider()
-        st.markdown(
-            f"### 💬 面试官第 {st.session_state.interview_round} 问："
-        )
+        st.markdown(f"### 💬 面试官第 {st.session_state.interview_round} 问：")
         st.markdown(f"**{st.session_state.current_interview_q}**")
 
-        user_answer = st.text_area(
-            "✍️ 输入你的回答", height=180, key="answer_area"
-        )
+        user_answer = st.text_area("✍️ 输入你的回答", height=180, key="answer_area")
 
         col1, col2, col3 = st.columns(3)
 
@@ -351,9 +329,11 @@ with tab3:
             if st.button("📝 AI 点评本次回答", key="btn_review"):
                 if user_answer.strip():
                     with st.spinner("AI 正在分析你的回答..."):
-                        feedback = st.session_state.scheduler.interview_agent.review_answer(
-                            question=st.session_state.current_interview_q,
-                            answer=user_answer,
+                        feedback = (
+                            st.session_state.scheduler.interview_agent.review_answer(
+                                question=st.session_state.current_interview_q,
+                                answer=user_answer,
+                            )
                         )
                         st.session_state.interview_feedback = feedback
                 else:
@@ -392,4 +372,4 @@ with tab3:
 
     # 底部操作区
     st.divider()
-    st.caption("💡 提示：完成多轮面试后，点击"生成整场面试复盘"可以获得全面的改进建议")
+    st.caption("💡 提示：完成多轮面试后，点击“生成整场面试复盘”可以获得全面的改进建议")
