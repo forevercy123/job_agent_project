@@ -13,13 +13,14 @@ class SchedulerAgent(BaseAgent):
         self.resume_agent = ResumeAgent()
         self.interview_agent = InterviewAgent()
 
-    def dispatch_task(self, user_requirement, user_info, task_type=None):
+    def dispatch_task(self, user_requirement, user_info, user_id=None, task_type=None):
         """
         参数 task_type: 可选 "search" / "resume" / "interview" / None(自动判断)
         如果指定了 task_type，直接执行对应任务，不再依赖LLM调度判断
+        user_id: 当前登录用户 ID，用于向量记忆的用户隔离
         """
-        # 读取长期向量记忆里的历史用户信息
-        memory_info = recall_user_info("用户求职背景")
+        # 读取长期向量记忆里的历史用户信息（按 user_id 隔离，避免跨用户数据泄漏）
+        memory_info = recall_user_info("用户求职背景", user_id)
         full_user_info = f"{user_info}\n历史记忆信息:{memory_info}"
 
         final_result = ""

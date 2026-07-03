@@ -185,19 +185,19 @@ with st.sidebar:
 
     if st.button("💾 保存个人信息至长期记忆", key="btn_save"):
         info_str = f"专业:{major},意向岗位:{target_job},城市:{city},技能:{skills}"
-        ok = save_user_info(info_str)
+        ok = save_user_info(info_str, user_id)
         if ok:
-            count = get_all_memory_count()
+            count = get_all_memory_count(user_id)
             st.success(f"✅ 已保存！当前记忆库共 {count} 条历史记录")
         else:
             st.warning("⚠️ 保存失败")
 
     if st.button("📋 查看所有历史记忆", key="btn_view"):
-        all_memory = get_all_memory_text()
+        all_memory = get_all_memory_text(user_id)
         st.info("📦 记忆库内容：\n\n" + all_memory)
 
     if st.button("🗑️ 清空所有长期记忆", key="btn_reset"):
-        reset_vector_db()
+        reset_vector_db(user_id)
         st.warning("⚠️ 所有长期记忆已清空")
 
     if st.button("🔄 清空对话短期记忆", key="btn_clear_mem"):
@@ -279,7 +279,7 @@ with tab1:
                         f"{user_demand} batch:{st.session_state.search_batch}"
                     )
                     res = st.session_state.scheduler.dispatch_task(
-                        demand_with_batch, full_info, task_type="search"
+                        demand_with_batch, full_info, user_id, task_type="search"
                     )
                 st.session_state.job_result = res
 
@@ -383,7 +383,10 @@ with tab3:
                 with st.spinner("面试官正在准备第一题..."):
                     first_q = (
                         st.session_state.scheduler.interview_agent.gen_first_question(
-                            resume=resume_for_interview, jd=jd_for_interview, diff=diff
+                            resume=resume_for_interview,
+                            jd=jd_for_interview,
+                            diff=diff,
+                            session_key=f"user_{user_id}",  # ✅ 用 user_id 隔离
                         )
                     )
                     st.session_state.current_interview_q = first_q
@@ -394,7 +397,9 @@ with tab3:
 
     with reset_col:
         if st.button("🔄 重新开始本场面试", key="btn_restart_interview"):
-            st.session_state.scheduler.interview_agent.clear_interview_record()
+            st.session_state.scheduler.interview_agent.clear_interview_record(
+                session_key=f"user_{user_id}"  # ✅ 用 user_id 隔离
+            )
             st.session_state.current_interview_q = ""
             st.session_state.interview_feedback = ""
             st.session_state.interview_round = 0
@@ -416,6 +421,7 @@ with tab3:
                             st.session_state.scheduler.interview_agent.review_answer(
                                 question=st.session_state.current_interview_q,
                                 answer=user_answer,
+                                session_key=f"user_{user_id}",  # ✅ 用 user_id 隔离
                             )
                         )
                         st.session_state.interview_feedback = feedback
@@ -431,7 +437,8 @@ with tab3:
                 if user_answer.strip():
                     with st.spinner("面试官正在基于你的回答生成下一题..."):
                         next_q = st.session_state.scheduler.interview_agent.gen_follow_question(
-                            last_answer=user_answer
+                            last_answer=user_answer,
+                            session_key=f"user_{user_id}",  # ✅ 用 user_id 隔离
                         )
                         st.session_state.current_interview_q = next_q
                         st.session_state.interview_feedback = ""
@@ -444,7 +451,9 @@ with tab3:
             if st.button("📈 生成整场面试复盘", key="btn_report"):
                 with st.spinner("AI 正在整理整场面试复盘报告..."):
                     full_report = (
-                        st.session_state.scheduler.interview_agent.generate_full_review()
+                        st.session_state.scheduler.interview_agent.generate_full_review(
+                            session_key=f"user_{user_id}"  # ✅ 用 user_id 隔离
+                        )
                     )
                     st.divider()
                     st.markdown("## 📑 整场面试复盘报告")

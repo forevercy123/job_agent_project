@@ -16,14 +16,23 @@ class BaseAgent:
             model="qwen-turbo",
             temperature=0.1,
         )
-        # 用字典存储多个独立的记忆空间，key为 session_id
+        # ✅ 用字典存储多个独立的记忆空间，key 为 session_key (如 user_id)
         self.history_stores = {}
+        # 安全上限：防止单会话无限增长
+        self._max_history_per_session = 50
 
     def _get_or_create_history(self, session_id):
-        """获取或创建指定 session_id 的对话历史"""
+        """获取或创建指定 session_id 的对话历史，超过上限自动裁剪"""
         if session_id not in self.history_stores:
             self.history_stores[session_id] = InMemoryChatMessageHistory()
-        return self.history_stores[session_id]
+        store = self.history_stores[session_id]
+        # 简单保护：消息数超过上限时裁剪保留最新的
+        if (
+            hasattr(store, "messages")
+            and len(store.messages) > self._max_history_per_session * 2
+        ):
+            store.messages = store.messages[-self._max_history_per_session :]
+        return store
 
     def run(self, prompt: str, session_id="default", max_retries=2) -> str:
         """
@@ -35,17 +44,15 @@ class BaseAgent:
                 llm_with_history = RunnableWithMessageHistory(
                     self.llm, lambda sid: self._get_or_create_history(sid)
                 )
-                response = llm_with_history.invoke(
+                response = llm_with_history(
                     [HumanMessage(content=prompt)], config={"session_id": session_id}
                 )
                 return response.content
             except Exception as e:
                 if attempt < max_retries:
-                    # 网络波动，等待 1 秒后重试
                     print(f"⚠️  LLM 调用失败，第 {attempt + 1} 次重试: {str(e)[:80]}")
                     time.sleep(1)
                 else:
-                    # 重试失败，返回友好提示
                     return f"⚠️  AI服务暂时不可用（{str(e)[:80]}），请稍后重试"
         return "⚠️ AI服务暂时不可用，请稍后重试"
 
@@ -70,7 +77,9 @@ class BaseAgent:
         """清空指定 session 的记忆（不传则清空 default）"""
         if session_id in self.history_stores:
             self.history_stores[session_id].clear()
+            print(f"[base_agent] session {session_id} 对话记忆已清空")
 
     def clear_all_memory(self):
         """清空所有 session 的记忆"""
         self.history_stores.clear()
+        print("[base_agent] 全部 session 的对话记忆已清空")

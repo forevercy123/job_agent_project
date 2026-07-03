@@ -37,3 +37,4 @@ venv.bak/
 Thumbs.db
 desktop.ini
 users.db
+test*.py
