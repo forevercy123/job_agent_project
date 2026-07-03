@@ -36,3 +36,4 @@ venv.bak/
 .DS_Store
 Thumbs.db
 desktop.ini
+users.db
