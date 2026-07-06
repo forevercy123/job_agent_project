@@ -16,7 +16,7 @@ class BaseAgent:
             model="qwen-turbo",
             temperature=0.1,
         )
-        # ✅ 用字典存储多个独立的记忆空间，key 为 session_key (如 user_id)
+        # 用字典存储多个独立的记忆空间，key 为 session_key (如 user_id)
         self.history_stores = {}
         # 安全上限：防止单会话无限增长
         self._max_history_per_session = 50
@@ -26,7 +26,6 @@ class BaseAgent:
         if session_id not in self.history_stores:
             self.history_stores[session_id] = InMemoryChatMessageHistory()
         store = self.history_stores[session_id]
-        # 简单保护：消息数超过上限时裁剪保留最新的
         if (
             hasattr(store, "messages")
             and len(store.messages) > self._max_history_per_session * 2
@@ -44,8 +43,10 @@ class BaseAgent:
                 llm_with_history = RunnableWithMessageHistory(
                     self.llm, lambda sid: self._get_or_create_history(sid)
                 )
-                response = llm_with_history(
-                    [HumanMessage(content=prompt)], config={"session_id": session_id}
+                # ✅ 关键修复：新版 LangChain 必须用 .invoke() 而不是直接 () 调用
+                response = llm_with_history.invoke(
+                    [HumanMessage(content=prompt)],
+                    config={"configurable": {"session_id": session_id}},
                 )
                 return response.content
             except Exception as e:

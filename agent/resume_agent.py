@@ -8,12 +8,11 @@ class ResumeAgent(BaseAgent):
         super().__init__()
         self.checker = CheckAgent()  # 简历内容校验Agent（防幻觉）
 
-    # 在 optimize_resume 函数内开头加入打分逻辑
     def optimize_resume(self, resume_text, jd_text):
         # 1. 计算简历与JD的语义匹配分数
         match_score = calculate_jd_resume_score(resume_text, jd_text)
 
-        # 2. LLM生成优化草稿
+        # 2. LLM 生成优化草稿（✅ 用 stateless，不需要对话历史记忆）
         draft_prompt = f"""
 你是专业简历优化师，简历与该岗位JD语义匹配度为 {match_score}/100分。
 分数越低代表简历越不匹配岗位，优化时重点补齐缺失技能关键词。
@@ -27,8 +26,9 @@ class ResumeAgent(BaseAgent):
 3. 逐段STAR法则修改建议
 4. 完整优化后简历
 要求：不编造虚假项目与技能，贴合应届生求职场景。
-        """
-        raw_optimized = self.run(draft_prompt)
+"""
+        # ✅ 改为 run_stateless()，不需要对话历史，更快且避免 RunnableWithMessageHistory 的 API 兼容问题
+        raw_optimized = self.run_stateless(draft_prompt)
 
         # 3. CheckAgent 校验：对比原始简历，删除编造内容，保证真实
         final_optimized = self.checker.check_resume_content(resume_text, raw_optimized)
