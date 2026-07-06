@@ -36,5 +36,9 @@ venv.bak/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ===== 测试数据库 =====
+vector_db/
 users.db
 test*.py
+
